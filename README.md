@@ -16,6 +16,7 @@ This repository will give examples of DS work. Specifically, we will predict the
   - AWS Lambda is serverless, likely cheapest for infrequent and low memory runs
     - Lambda fxn is established first
     - Python script is uploaded to S3, then uploaded to Lambda
+      - Believe this actually needs to be done before configuring fxn
     - Establish a trigger for Lambda fxn (such as Cloudwatch event based on daily timing)
     - test function to run as expected
     - "deploy" by publishing a new version of the fxn
