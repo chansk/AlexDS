@@ -13,3 +13,9 @@ This repository will give examples of DS work. Specifically, we will predict the
 3. Chron job to automate input, preprocessing, and prediction.
   - Airflow suggested, but that may be too strong for constant inputs and $
   - Aws Lambda and Aws Batch sound like possibilities
+  - AWS Lambda is serverless, likely cheapest for infrequent and low memory runs
+    - Lambda fxn is established first
+    - Python script is uploaded to S3, then uploaded to Lambda
+    - Establish a trigger for Lambda fxn (such as Cloudwatch event based on daily timing)
+    - test function to run as expected
+    - "deploy" by publishing a new version of the fxn
