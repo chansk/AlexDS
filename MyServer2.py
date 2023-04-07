@@ -12,7 +12,7 @@ app = Flask(__name__) # Create an instance of Flask class (this is the WSGI appl
 @app.route('/<name>')
 # Defining the hello_name function with optional parameter
 def hello_name(name='Alex'):
-    return 'Hello %s!' % name
+    return '<p>Hello %s!</p>' % name
 
 # This prints basic hello world when URL pasted into browser:
 # @app.route('/')
