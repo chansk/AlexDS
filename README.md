@@ -20,3 +20,23 @@ This repository will give examples of DS work. Specifically, we will predict the
     - Establish a trigger for Lambda fxn (such as Cloudwatch event based on daily timing)
     - test function to run as expected
     - "deploy" by publishing a new version of the fxn
+    
+    - Cloudwatch event set up successfully
+    - Lambda seems quickest and least expensive, except Python packages need to be loaded in
+    
+      - trouble with the following way 
+      - Follow aws guidance to upload code and dependencies: https://docs.aws.amazon.com/lambda/latest/dg/python-package.html
+      - Create new directory
+      - Navigate into it
+      - Copy .py script into here
+      - Install libraries into "package" directory within new directory
+      - Zip "package" directory
+      - Upload into lambda together and they should run
+      
+  - try this method again
+    - Download libraries from Python package index
+      pypi.org/project/pandas/#files
+      pypi.org/project/pytz/#files
+      pypi/org/project/numpy/#files
+    - Create custom package
+    - Create Lambda layer
