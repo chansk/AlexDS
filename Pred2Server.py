@@ -11,3 +11,8 @@ def dynamic_page():
 
 #if __name__ == '__main__':
  #   app.run(host='0.0.0.0', port='8000', debug=True)
+
+ # This the main driver fxn
+if __name__ == '__main__':
+    # run() method of Flask class runs the app on local dev server
+    app.run()

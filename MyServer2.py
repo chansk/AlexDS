@@ -15,11 +15,10 @@ app = Flask(__name__) # Create an instance of Flask class (this is the WSGI appl
 def hello_world():
    return 'Hello world!'
 
-
-#@app.route('/<name>')
+@app.route('/<name>')
 # Defining the hello_name function with optional parameter
-#def hello_name(name='Alex'):
-#    return '<p>Hello %s!</p>' % name
+def hello_name(name='Alex'):
+    return '<p>Hello %s!</p>' % name
 
 
 # This the main driver fxn
