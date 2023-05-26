@@ -9,4 +9,7 @@ Debugging
 - Click to left of code line to establish red dot
 - Hit run and Debug --> create a launch.json file
     - "module: flask" tells debugger to run python file as Flask
-    - 
+    - ensure app name is file we want to debug
+    - Save json
+    - Run and debug tab: hit green arrow
+        - Before page renders, VS Code pauses program at breakpoint set
