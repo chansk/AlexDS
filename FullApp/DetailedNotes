@@ -9,6 +9,8 @@ Basic running:
     python Pred2Server.py for deploying basic prediction script
 - tutorial_edits / hello_app has proper, basic structure for producing page with three pages
   - follow these and have one page for each of three scripts probably
+  -  tutorial_2 not working for some reason, neither is Python interpreter
+    - may need to delete and add back in before running
 
 Debugging MyServer3.py
 - Click to left of code line to establish red dot
