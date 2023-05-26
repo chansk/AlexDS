@@ -9,15 +9,18 @@ app = Flask(__name__) # Create an instance of Flask class (this is the WSGI appl
 
 # route() fxn is a decorator of Flask class -- it specifies URL endpoint fxn will be handling
     # specifically, it is root URL with variable called 'name' that will be passed onto URL
-@app.route('/<name>')
-# Defining the hello_name function with optional parameter
-def hello_name(name='Alex'):
-    return '<p>Hello %s!</p>' % name
 
 # This prints basic hello world when URL pasted into browser:
-# @app.route('/')
-# def hello_world():
-#    return 'Hello world!'
+@app.route('/')
+def hello_world():
+   return 'Hello world!'
+
+
+#@app.route('/<name>')
+# Defining the hello_name function with optional parameter
+#def hello_name(name='Alex'):
+#    return '<p>Hello %s!</p>' % name
+
 
 # This the main driver fxn
 if __name__ == '__main__':

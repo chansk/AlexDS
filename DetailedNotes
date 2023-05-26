@@ -1,0 +1,10 @@
+Basic running:
+1. Open repo in VSCode
+2. use menv as Python interpreter
+  pip install anything needed
+3. python MyServer2.py --> then click on URL to deploy locally
+
+
+Debugging
+- Click to left of code line to establish red dot
+- Hit run and Debug --> create a launch.json file
