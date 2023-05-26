@@ -14,6 +14,10 @@ def about():
 def contact():
     return render_template("contact.html")
 
+@app.route("/appleprice/")
+def appleprice():
+    return render_template("appleprice.html")
+
 @app.route("/hello/")
 @app.route("/hello/<name>")
 def hello_there(name = None):
