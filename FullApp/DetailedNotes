@@ -2,8 +2,13 @@ Basic running:
 1. Open repo in VSCode
 2. use menv as Python interpreter
   pip install anything needed
-3. python MyServer2.py --> then click on URL to deploy locally
 
+3. export FLASK_APP=webapp.py
+4. python MyServer2.py --> then click on URL to deploy locally
+    python MyServer3.py for grabbing template
+    python Pred2Server.py for deploying basic prediction script
+- tutorial_edits / hello_app has proper, basic structure for producing page with three pages
+  - follow these and have one page for each of three scripts probably
 
 Debugging MyServer3.py
 - Click to left of code line to establish red dot
@@ -22,3 +27,4 @@ MyServer2.py
 
 Pred2Server.py
 - run it same as MyServer2.py, except it prints out a prediction
+
