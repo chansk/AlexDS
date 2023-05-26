@@ -29,4 +29,3 @@ MyServer2.py
 
 Pred2Server.py
 - run it same as MyServer2.py, except it prints out a prediction
-
