@@ -1,6 +1,7 @@
 # AlexDS
 This repository will give examples of DS work. Specifically, we will predict the stock price of Apple using regression.
 
+Advanced running for AWS Deployment
 1. Use Python to predict Apple stock price from live data feed.
   - Apple's closing price is being tracked from Jan 1, 2010, through the most recent trading day's closing price to use for predictions. Updated daily!
   - Work was done in Pred2.ipynb, continue testing in this. If needed, can later convert jupyter notebook to .py file
