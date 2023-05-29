@@ -1,9 +1,21 @@
-# Note: you need to be using OpenAI Python v0.27.0 for the code below to work
+
+# %% 
 import openai
+openai.api_key = "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"
+# %% 
+#returns a list of all OpenAI models
+models = openai.Model.list()
+# %% 
+print(models)
 
-openai.api_key = "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"
+# %% 
+# converts the list of OpenAI models to a Pandas DataFrame
+import pandas as pd
+data = pd.DataFrame(models["data"])
+data.head(20)
 
-openai.ChatCompletion.create(
+# %% 
+response = openai.ChatCompletion.create(
   model="gpt-3.5-turbo",
   messages=[
         {"role": "system", "content": "You are a helpful assistant."},
@@ -12,3 +24,6 @@ openai.ChatCompletion.create(
         {"role": "user", "content": "Where was it played?"}
     ]
 )
+# %% 
+response['choices'][0]['message']['content']
+# %%
