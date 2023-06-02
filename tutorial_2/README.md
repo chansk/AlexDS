@@ -32,3 +32,7 @@ When you submit a pull request, a CLA-bot automatically determines whether you n
 * For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 * Contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 - secret: type /hello/name after URL for additional message
+
+
+Additional notes:
+- to add new page: add line to layout.html, add lines to views.py
