@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 import mysql.connector as sql
 import psycopg2
-from sqlalchemy import create_engine
+# from sqlalchemy import create_engine
 
 # %% Retrieve data using API call
 
@@ -122,6 +122,7 @@ conn.autocommit = True
 cursor = conn.cursor()
   
 # Testing if can retrieve data easily
+    # Attention: this now working
 sql1 = '''select * from data;'''
 cursor.execute(sql1)
 for i in cursor.fetchall():
