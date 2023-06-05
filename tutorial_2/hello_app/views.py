@@ -22,6 +22,10 @@ def appleprice():
 def analysis():
     return render_template("Trial.html")
 
+@app.route("/forecastedweather/")
+def forecastedweather():
+    return render_template("forecasted.html")
+
 @app.route("/hello/")
 @app.route("/hello/<name>")
 def hello_there(name = None):
