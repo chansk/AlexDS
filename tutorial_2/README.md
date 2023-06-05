@@ -9,6 +9,7 @@
   1. Run the command `set FLASK_APP=webapp` (Windows cmd) or `FLASK_APP=webapp` (macOS/Linux) to point to the app module.
       -- For Mac, may need to run `export FLASK_APP=webapp.py` instead
   1. Start the Flask server with `flask run`.
+      -- likely do not need apostrophes around this
 
 ## The startup.py file
 
@@ -35,4 +36,4 @@ When you submit a pull request, a CLA-bot automatically determines whether you n
 
 
 Additional notes:
-- to add new page: add line to layout.html, add lines to views.py
+- to add new page: add line to layout.html, add lines to views.py, and add new Html

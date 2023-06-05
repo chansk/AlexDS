@@ -1,14 +1,24 @@
 
 # %% 
 import openai
-openai.api_key = "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"
+import os
+import pandas as pd
+#open.api_key = os.environ["OPENAI_API_KEY"]
+open.api_key = os.environ.get('OPENAI_API_KEY')
+
+#openai.api_key = "s"
+# %% This is working now but would much rather have it stored in environment long term than name to path
+with open('/Users/alexanderchansky/Downloads/GPT_API_key.txt', 'r') as file:
+    api_key = file.read().strip()
+
+# Set the API key
+openai.api_key = api_key
 # %% 
 #returns a list of all OpenAI models
 models = openai.Model.list()
 print(models)
 
 # converts the list of OpenAI models to a Pandas DataFrame
-import pandas as pd
 data = pd.DataFrame(models["data"])
 data.head(20)
 

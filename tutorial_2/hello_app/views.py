@@ -14,9 +14,13 @@ def about():
 def contact():
     return render_template("contact.html")
 
-@app.route("/appleprice/")
+@app.route("/celtics/")
 def appleprice():
-    return render_template("appleprice.html")
+    return render_template("celtics.html")
+
+@app.route("/analysis/")
+def analysis():
+    return render_template("Trial.html")
 
 @app.route("/hello/")
 @app.route("/hello/<name>")
