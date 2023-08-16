@@ -1,0 +1,223 @@
+---
+title: "Weather Pred Assessment"
+format: html
+editor: visual
+---
+
+```{python Initialize libraries}
+import json
+import requests
+import pandas as pd
+from datetime import datetime
+import psycopg2
+import datetime as dt
+import pytz
+import requests
+import matplotlib.pyplot as plt
+from sqlalchemy import create_engine
+```
+
+## Framework:
+
+1.  Pull in forecasted weather on regular basis and store it in PostgreSQL DB
+    1.  likely by the hour
+2.  Gather realtime / historical data for some location, for those same timeframes
+3.  Compare them to assess accuracy of forecasted predictions
+
+## Pull in forecasted weather on regular basis and store it directly in PostgreSQL DB
+
+```{python}
+url = "https://api.tomorrow.io/v4/timelines?location=42.3478%2C%20-71.0466&fields=temperature&fields=&units=metric&timesteps=1h&startTime=now&endTime=nowPlus48h&apikey=WgX3pBOikmlLo5MDTzfdHPaYuSqyhuMZ"
+url = "https://api.tomorrow.io/v4/timelines?location=42.3478%2C%20-71.0466&fields=temperature&fields=&units=metric&timesteps=1d&startTime=now&endTime=nowPlus5d&apikey=WgX3pBOikmlLo5MDTzfdHPaYuSqyhuMZ"
+headers = {
+    "accept": "application/json",
+    "Accept-Encoding": "gzip"
+}
+response = requests.get(url, headers=headers)
+print(response.text)
+```
+
+```{python get current date and time for saving forecasted data}
+# # datetime object containing current date and time
+# now = datetime.now()
+# # dt_string = now.strftime("%Y%m%d_%H:%M:%S")
+# dt_string = now.strftime("%Y%m%d")
+# print("date and time =", dt_string)
+# table_name="date_"+dt_string
+```
+
+## Storing json in my DB
+```{python }
+# Convert JSON data to string
+json_string = json.dumps(response.json())
+
+# Establish connection to PostgreSQL database
+conn = psycopg2.connect(database ="postgres", user = "postgres",
+                        password = "Brazilll", host = "localhost", 
+                        port = "5432")
+
+# Create a cursor object to execute SQL queries
+cur = conn.cursor()
+
+# Create a table in PostgreSQL with a JSON column
+cur.execute("CREATE TABLE IF NOT EXISTS daily_forecasts2 (id SERIAL PRIMARY KEY, data JSONB)")
+
+# Insert the JSON data into the table
+cur.execute("INSERT INTO daily_forecasts2 (data) VALUES (%s)", (json_string,))
+# cur.execute("INSERT INTO "+table_name+" (data) VALUES (%s)", (json_string,))
+
+
+# Commit the changes to the database
+conn.commit()
+
+# Close the cursor and the connection
+cur.close()
+conn.close()
+
+```
+- Can pause here to check pgadmin 4 for submission
+- Note for later: could store each data retrieval as a single line in a single table of DB, seems to be most efficient storage method
+- all predictions in ten lines of 
+
+## Retrieving that same data from DB into workspace
+```{python }
+# Establish connection to PostgreSQL database
+conn = psycopg2.connect(database ="postgres", user = "postgres",
+                        password = "Brazilll", host = "localhost", 
+                        port = "5432")
+
+# Create a cursor object to execute SQL queries
+cur = conn.cursor()
+
+# Select the JSON data from the table
+cur.execute("SELECT data FROM my_table")
+
+# Fetch the retrieved data, which should already be stored as a python object
+# json_data = cur.fetchone()[0]
+for row in cur.fetchall():
+    string = row[0]
+    # Do something with the individual string, such as printing it
+    # fxn here to save each string as 
+    print(string) # prob not necessary
+
+# Close the cursor and the connection
+cur.close()
+conn.close()
+
+# Print the retrieved JSON data
+# print(json_data)
+```
+
+
+## Turning it into readable DF
+```{python Json string to readable df fxn}
+
+def jsonstring_to_df(json_data_arg):
+
+  # %% turn to Df
+  # timelines = parsed_data['data']['timelines']
+  timelines = json_data_arg['data']['timelines']
+  intervals = []
+  for timeline in timelines:
+      intervals.extend(timeline['intervals'])
+  
+  # Create a DataFrame from the extracted data
+  data = pd.DataFrame(intervals)
+  
+  
+  # %% Turn Datetimes into columns
+  df = pd.DataFrame(data['startTime'])
+  
+  # Split datetime into separate columns
+  df[['date', 'time']] = df['startTime'].str.split('T', expand=True)
+  df[['year', 'month', 'day']] = df['date'].str.split('-', expand=True)
+  df[['hour', 'minute', 'second']] = df['time'].str[:-1].str.split(':', expand=True)
+  
+  # Remove unnecessary columns
+  df = df.drop(['startTime', 'date', 'time'], axis=1)
+  
+  # %% Pull the column of temperature values
+  df['temp'] = data['values'].apply(lambda x: x['temperature'])
+      # access values in 'values' column
+      # lambda fxn: extracts value, temp, from each key, x
+      
+  return(df)
+
+# df2 = jsonstring_to_df(json_data)
+df2 = jsonstring_to_df(string) # Attention: this works
+
+```
+
+## Addtl Fxns
+```{python df to DB fxn -- not working}
+df=df2
+
+# PostgreSQL connection parameters
+host = "localhost"
+port = "5432"
+database ="postgres"
+user = "postgres"
+password = "Brazilll"
+schema = 'public'
+table_name = 'Trial'
+
+# conn_string = 'postgres://user:password@host/data1'
+conn_string = database+'://'+user+':'+password+'@'+host+'/data1'
+eng_string = database+'://'+user+':'+password+'@'+host+':'+port+'/'+database
+
+engine = create_engine(eng_string)
+# engine = create_engine('postgresql://username:password@localhost:5432/mydatabase')
+df.to_sql('table_name', engine)
+
+sql.write_frame(df, 'table_name', con, flavor='postgresql')
+```
+
+```{python Prints DataFrame to a table in the PostgreSQL database}
+# Create a DataFrame
+# df = pd.DataFrame({
+#     'col1': [1, 2, 3],
+#     'col2': ['A', 'B', 'C']
+# })
+
+# PostgreSQL connection parameters
+host = "localhost"
+port = "5432"
+database ="postgres"
+user = "postgres"
+password = "Brazilll"
+schema = 'public'
+table_name = 'Trial'
+
+# Create the SQLAlchemy engine
+engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
+
+# Convert the DataFrame to a table in the PostgreSQL database
+df2.to_sql(table_name, engine, schema=schema, if_exists='replace', index=False)
+
+# Close the database connection
+engine.dispose()
+
+# This method runs without error but not giving me any tables in DB
+```
+
+## Analysis
+```{python match forecasts with historical data using dates}
+# Should result in columns side by side
+
+```
+
+```{python find differences between historical and forecasted data}
+
+
+```
+
+# Summary statistics
+```{python fxn for summary statistics and plots}
+# stats for historical
+
+# stats for forecasted
+
+# stats for differences
+```
+
+## Saving it as DF as well for analytics?

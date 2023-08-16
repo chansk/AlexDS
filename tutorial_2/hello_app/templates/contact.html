@@ -3,21 +3,28 @@
 Contact us
 {% endblock %}
 {% block content %}
-    {% include "jsfxn.html" %}
+    <!-- {% include "jsfxn.html" %} -->
 
-<!-- <p>
+<html>
     <head>
-        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-        <script type="text/javascript" src="jsfxn.js"></script>
+        <!-- <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script> -->
+        <!-- <script>document.write(11 + 6);</script> -->
     </head>
 
     <body>
-        <div id="chart_div"></div>
+        <!-- <div id="chart_div"></div> -->
+        <!-- <script type="text/javascript" src="/tutorial_2/hello_app/templates/hello.js"></script> -->
+        <!-- <script type="text/javascript" src="hello.js"></script> -->
+        <!-- The external js script not getting called -->
+        <!-- <script>document.write(11 + 6);</script> -->
+        <script type="text/javascript" src="/Users/alexanderchansky/Library/Mobile Documents/com~apple~CloudDocs/Documents/GitHub/AlexDS/tutorial_2/hello_app/templates/hello.js"></script>
     </body>
 
-- This is a Jinja2 template
+<!-- - This is a Jinja2 template
 - it calls jsfxn.html, which should call jsfxn.js, which should call drawChart() at end
-- no errors appear, but no chart appears either
+- no errors appear, but no chart appears either -->
 
-</p> -->
+</html>
+
+
 {% endblock %}

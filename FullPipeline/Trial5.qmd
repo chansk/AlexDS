@@ -1,0 +1,260 @@
+---
+title: "Weather Pred Assessment"
+format: html
+editor: visual
+---
+- pulling out temps for individual polling locations in a single year
+- Subtract mean for percent of people which vote (aggregated from all years available for each county) from the county of interest to get its variance from the mean
+- Ask Reddit what else would be helpful and relatively easy to do?
+
+1. Weather data in each county on days of votes
+2. Percent of registered voters who voted on each day
+3. GDP per capita of each country for last 40 years
+
+Instead, do the following:
+
+1. voting age pop in "County.xlsx": https://www2.census.gov/programs-surveys/decennial/rdo/technical-documentation/special-tabulation/CVAP_2016-2020_ACS_documentation_v3.pdf
+https://www.census.gov/programs-surveys/decennial-census/about/voting-rights/cvap.2020.html
+
+2. Get weather for 2020 voting in each county
+
+3. compute "weighted weather" where we weight the weather in each county by number of people of voting age in each county
+
+4. compare weighted weather with voting results in each state (table04c)
+  - Probably more easily replicable across past years as well to see if trends have changed at all
+  
+- Later on: try subtracting Reasons for not voting: table10.xlsx
+
+```{python Initialize libraries}
+import json
+import requests
+import pandas as pd
+from datetime import datetime
+import psycopg2
+import datetime as dt
+import pytz
+import requests
+import matplotlib.pyplot as plt
+from sqlalchemy import create_engine
+from noaa_sdk import NOAA
+import subprocess
+import TrialFxns # working for now
+import geopandas as gpd
+import numpy as np
+```
+
+# importing and saving Weather data
+
+## testing
+```{python}
+# import sys
+# sys.path.append('/Users/alexanderchansky/iCloud Drive/Documents/GitHub/AlexDS/TrialFunctions.py')
+# import TrialFxns.py
+# # Does not work
+#   # not sure if the appended path is actually working properly
+#   # Could probably test that with opening a folder within AlexDS through the console
+```
+
+```{python}
+r = requests.get('https://archive-api.open-meteo.com/v1/archive?latitude=42.3656&longitude=-71.0098&start_date=2022-01-01&end_date=2022-01-02&hourly=temperature_2m')
+r.json()
+```
+
+Save into DB directly
+## Storing json in my DB
+
+```{python }
+#json_to_DB(response_string, NOAAcast1)
+
+#def json_to_DB(response_string, table_name, DB="postgres"):
+
+# Convert JSON data to string
+# json_string = json.dumps(response.json())
+data_string = json.dumps(r.json())
+
+# Establish connection to PostgreSQL database
+conn = psycopg2.connect(database ="postgres", user = "postgres",
+                        password = "Brazilll", host = "localhost", 
+                        port = "5432")
+
+# Create a cursor object to execute SQL queries
+cur = conn.cursor()
+
+# Create a table in PostgreSQL with a JSON column
+cur.execute("CREATE TABLE IF NOT EXISTS Meteo (id SERIAL PRIMARY KEY, data JSONB)")
+
+# Insert the JSON data into the table
+cur.execute("INSERT INTO Meteo (data) VALUES (%s)", (data_string,))
+# cur.execute("INSERT INTO "+table_name+" (data) VALUES (%s)", (json_string,))
+
+# Commit the changes to the database
+conn.commit()
+# Close the cursor and the connection
+cur.close()
+conn.close()
+```
+
+
+Pull out into readable df
+## Retrieving that same data from DB into workspace
+```{python }
+jj = db_to_workspace_string_meteo("meteo")
+```
+
+## Turning it into readable DF
+```{python Tomorrow Json string to readable df fxn}
+# df2 = jsonstring_to_df(json_data)
+df2 = jsonstring_to_df_Tomorrow(string) # Attention: this works
+```
+
+Should come from somewhere on this website:
+https://data.census.gov/table?g=040XX00US01$0500000&d=ACS+5-Year+Estimates+Selected+Population+Data+Profiles&tid=ACSDP5YSPT2021.DP03
+- Download csv and place on local computer, with details in iCloud of which data to select
+- At some point can probably do through API, but this would take longer
+
+### Read in CSV to python
+### Parse data from CSV
+### Name columns correctly
+
+
+
+
+
+
+# Importing ACS data
+
+## using API
+```{python}
+acs_key = "01bec341ab2ad69ac7d44c1e74f084f8e3aff239"
+r = requests.get('https://archive-api.open-meteo.com/v1/archive?latitude=42.3656&longitude=-71.0098&start_date=2022-01-01&end_date=2022-01-02&hourly=temperature_2m')
+r.json()
+```
+
+
+
+## 1. voting age pop in "County.xlsx"
+```{python}
+# Read Excel file of pre-processed data
+excel_file = '/Users/alexanderchansky/Downloads/table04c_preProc.xlsx'
+df2 = pd.read_excel(excel_file)
+```
+
+## 4. compare weighted weather with voting results in each state (table04c)
+```{python table04}
+# Read Excel file of pre-processed data
+excel_file = '/Users/alexanderchansky/Downloads/table04c_preProc.xlsx'
+df2 = pd.read_excel(excel_file)
+
+# drop first three row
+df = df.drop([0, 1, 2, 3]) 
+# turn remaining row 1 values into column headers
+## Get the values from the first row
+new_columns = df.iloc[0]
+
+## Set the column headers 
+df.columns = new_columns
+
+## Drop the first row since it's now used as column headers
+df = df.iloc[1:]
+
+## Reset the index
+df.reset_index(drop=True, inplace=True)
+
+# Drop rows 313 to 319
+df = df.drop(df.index[313:320])
+```
+
+
+
+
+## Using precinct level data as json (instead of geojson)
+```{python }
+import json
+
+# Read GeoJSON data from a file
+with open('/Users/alexanderchansky/Downloads/precincts-with-results.geojson', 'r') as f:
+    geojson_data = json.load(f)
+
+# Access properties and geometry from the GeoJSON data
+features = geojson_data['features']
+for feature in features:
+    properties = feature['properties']
+    geometry = feature['geometry']
+    # Process properties and geometry as needed
+    
+    
+# Convert JSON data into a DataFrame
+df_json = pd.json_normalize(features[1], max_level=1)
+
+df_json_2 = pd.json_normalize(features[1],
+                        record_path=['properties'],  # Specifies the path to the properties dictionary
+                        max_level=1)  # Flatten only one level
+                        
+```            
+
+```{python}
+# Assuming 'features' is a list of feature dictionaries
+features = geojson_data['features']
+# features = geojson_data['features'][:1000]  # Use only the first three features
+
+# Extract properties from each of the first three features and create a DataFrame
+data = []
+for feature in features:
+    properties = feature['properties']
+    data.append(properties)
+
+# Create a DataFrame from the list of dictionaries
+df = pd.DataFrame(data)
+
+# Display the resulting DataFrame
+print(df)
+```
+```{python plotting geojson to see if it matches up}
+# Read GeoJSON file
+geojson_file = '/Users/alexanderchansky/Downloads/precincts-with-results.geojson'
+gdf = gpd.read_file(geojson_file)
+
+# Plot the GeoDataFrame
+gdf.plot()
+plt.show()
+
+
+filtered_gdf = gdf[gdf['GEOID'].str.startswith("25017")]
+# Customize the plot
+fig, ax = plt.subplots(figsize=(10, 10))
+# gdf.plot(ax=ax, color='blue', edgecolor='black', legend=True)
+filtered_gdf.plot(ax=ax, color='blue', edgecolor='black', legend=True)
+ax.set_title('GeoJSON Plot')
+plt.show()
+```
+
+
+```{python importing FIPS codes to aggregate by county}
+fips_file = '/Users/alexanderchansky/Downloads/fips2county.tsv'
+df_fips = pd.read_csv(fips_file, sep='\t')
+
+# left join here because we want records from left table, regardless if they have a pair on right or not
+# in precint data, pull out first five numbers into new column
+  # Then join county name and state name to the precint data using FIPS column and new col
+
+# Fxn to extract first five digits from each row val
+def extract_five(thisrow):
+  return int(df_precint.iloc[thisrow,0][:5]) 
+
+  
+first_10_rows = df_precint[:10]
+first_10_rows['fips'] = np.nan
+for x in range(len(first_10_rows)):
+  first_10_rows.at[x, 'fips'] = extract_five(x)
+
+df_precint['fips'] = np.nan
+for x in range(len(df_precint)):
+  df_precint.at[x, 'fips'] = extract_five(x)
+  
+  
+# Aggregate votes rep, votes dem, votes total by fips
+aggregated_values2 = df_precint.groupby('fips').agg({'fips': 'first','votes_dem': 'sum', 'votes_rep': 'sum', 'votes_total': 'sum'})
+
+# Join County and State names to aggregated df
+aggregated_values2.merge(df_fips, on='fips')
+```

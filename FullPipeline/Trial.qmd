@@ -1,0 +1,170 @@
+---
+title: "Tomorrow API Call analysis trial"
+format: html
+editor: visual
+---
+
+```{python}
+import json
+import requests
+import pandas as pd
+from datetime import datetime
+# import mysql.connector as sql
+import psycopg2
+
+import datetime as dt
+import pytz
+import requests
+import matplotlib.pyplot as plt
+```
+
+# Historical data: should be public called from elsewhere
+
+# Tomorrow.io weather options
+
+## Historical weather (up to 48 hours)
+
+## Realtime weather
+
+```{python}
+import requests
+url = "https://api.tomorrow.io/v4/weather/realtime?location=toronto&apikey=WgX3pBOikmlLo5MDTzfdHPaYuSqyhuMZ"
+headers = {"accept": "application/json"}
+response = requests.get(url, headers=headers)
+print(response.text)
+```
+
+## Forecasted weather (I think 14 days)
+
+```{python}
+url = "https://api.tomorrow.io/v4/weather/forecast?location=new%20york&apikey=WgX3pBOikmlLo5MDTzfdHPaYuSqyhuMZ"
+headers = {"accept": "application/json"}
+response = requests.get(url, headers=headers)
+print(response.text)
+
+# Parse JSON string to a Python dictionary
+data = json.loads(response.text)
+
+df = pd.json_normalize(data["timelines"]["minutely"])
+```
+
+# First dataset: Logistics delay analysis
+
+Retrieve data using API call
+
+```{python}
+url = "https://api.tomorrow.io/v4/timelines?location=42.3478%2C%20-71.0466&fields=temperature&fields=&units=metric&timesteps=1h&startTime=now&endTime=nowPlus48h&apikey=WgX3pBOikmlLo5MDTzfdHPaYuSqyhuMZ"
+# The plan is restricted and cannot perform this action. Adjust action and try again: startTime cannot be more than 24 hours in the past."}
+
+# set the Historical API POST endpoint as the target URL
+postHistoricalURL = "https://api.tomorrow.io/v4/historical"
+
+# get your key from app.tomorrow.io/development/keys
+apikey = "WgX3pBOikmlLo5MDTzfdHPaYuSqyhuMZ"
+
+# pick the location, as a latlong pair
+location = [42.63496561409271, -73.68988401705542]
+
+# list the fields
+fields = [
+    "totalPrecipitationAccumulationMax",
+    "windSpeedMax",
+		"windDirectionAvg",
+		"windGustMax",
+    "snowAccumulationMax"
+]
+# choose the unit system, either metric or imperial
+units = "imperial"
+
+# set the timesteps, like "current", "1h" and "1d"
+timesteps = ["1d"]
+
+# configure the time frame within the historical bounderies (January 1st, 2015 till 7 days in the past)
+now = dt.datetime.now(pytz.UTC)
+startTime = '2022-12-01T12:00:00.000Z' #(now + dt.timedelta(days=-430)).isoformat()
+endTime = '2022-12-20T12:00:00.000Z' #(now + dt.timedelta(days=-422)).isoformat()
+
+# specify the timezone, using standard IANA timezone format
+timezone = "US/Eastern"
+
+# request the historical timelines with all the body parameters as options
+body = {"location": location, "fields": fields, "units": units, "timesteps": timesteps, "startTime": startTime, "endTime": endTime, "timezone":timezone}
+response = requests.post(f'{postHistoricalURL}?apikey={apikey}', json=body)
+
+url = "https://api.tomorrow.io/v4/timelines?location=42.3478%2C%20-71.0466&fields=temperature&fields=&units=metric&timesteps=1d&startTime=2022-12-01T12:00:00.000Z&endTime=2022-12-20T12:00:00.000Z&apikey=WgX3pBOikmlLo5MDTzfdHPaYuSqyhuMZ"
+response = requests.post(f'{url}', json=body)
+data = response.json()
+data = data["data"]["timelines"]
+
+# create a dataframe with the response values
+df = pd.DataFrame()
+for item in data:
+    item = item["intervals"]
+    df = pd.json_normalize(item)
+df.rename(columns={'startTime': 'Date'}, inplace=True)
+df.Date = pd.to_datetime(df['Date'], format='%Y-%m-%d')
+
+# bring your own data - we use mock data for the example
+delays = [32, 20, 12, 16, 12, 12, 13, 23, 2, 3, 8, 5, 14, 30, 90, 100, 50, 30, 20, 11]
+delayAvgDurationMin = [48, 40, 15, 16, 14, 10, 13, 4, 3, 7, 3, 8, 40, 190, 220, 110, 40, 50, 18, 90]
+missedDeliveries = [10, 2, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 15, 90, 100, 50, 30, 20, 45]
+routeAvgLength = [132, 240, 112, 36, 62, 32, 43, 37, 20, 19, 82, 67, 97, 112, 90, 57, 22, 49, 63, 143]
+df['Delays'] = delays
+df['Delay Avg Duration Min'] = delayAvgDurationMin
+df['Missed Deliveries'] = missedDeliveries
+df['Route Average Length'] = routeAvgLength
+
+# visualize:
+df.plot(x="Date", y=["Delays"])
+df.plot(x="Date", y=["values.snowAccumulationMax"])
+plt.show()
+print('done')
+```
+
+# Second dataset: 48 hour prediction
+
+Retrieve data using API call
+
+```{python}
+url = "https://api.tomorrow.io/v4/timelines?location=42.3478%2C%20-71.0466&fields=temperature&fields=&units=metric&timesteps=1h&startTime=now&endTime=nowPlus48h&apikey=WgX3pBOikmlLo5MDTzfdHPaYuSqyhuMZ"
+headers = {
+    "accept": "application/json",
+    "Accept-Encoding": "gzip"
+}
+response = requests.get(url, headers=headers)
+print(response.text)
+
+# Parse the JSON data into a Python object
+parsed_data = json.loads(response.text)
+
+# %% turn to Df
+timelines = parsed_data['data']['timelines']
+intervals = []
+for timeline in timelines:
+    intervals.extend(timeline['intervals'])
+
+# Create a DataFrame from the extracted data
+data = pd.DataFrame(intervals)
+```
+
+Turn DF into something readable
+
+```{python}
+# %% Turn Datetimes into columns
+df = pd.DataFrame(data['startTime'])
+
+# Split datetime into separate columns
+df[['date', 'time']] = df['startTime'].str.split('T', expand=True)
+df[['year', 'month', 'day']] = df['date'].str.split('-', expand=True)
+df[['hour', 'minute', 'second']] = df['time'].str[:-1].str.split(':', expand=True)
+
+# Remove unnecessary columns
+df = df.drop(['startTime', 'date', 'time'], axis=1)
+
+# %% Pull the column of temperature values
+df['temp'] = data['values'].apply(lambda x: x['temperature'])
+    # access values in 'values' column
+    # lambda fxn: extracts value, temp, from each key, x
+
+df
+```

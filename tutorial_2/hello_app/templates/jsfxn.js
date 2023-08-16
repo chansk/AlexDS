@@ -32,4 +32,6 @@ function drawChart() {
 }
 
 // Call the drawChart function
-drawChart();
+// drawChart();
+
+// node '/Users/alexanderchansky/Library/Mobile Documents/com~apple~CloudDocs/Documents/GitHub/AlexDS/tutorial_2/hello_app/templates/jsfxn.js'

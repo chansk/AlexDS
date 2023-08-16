@@ -1,0 +1,170 @@
+---
+title: "Weather Pred Assessment"
+format: html
+editor: visual
+---
+
+-   Let's instead see if climate has noticeable impact on local / global economies Need:
+
+1.  General climate data for each country throughout last 20 years
+2.  List of extreme events and month they occurred for last 20 years
+3.  GDP per capita of each country for last 20 years
+4.  Inflation of each country for last 20 years
+
+-   pulling out temps for individual polling locations in a single year
+-   Subtract mean for percent of people which vote (aggregated from all years available for each county) from the county of interest to get its variance from the mean
+-   Ask Reddit what else would be helpful and relatively easy to do?
+
+```{python Initialize libraries}
+import json
+import requests
+import pandas as pd
+from datetime import datetime
+# import psycopg2
+import datetime as dt
+import pytz
+import requests
+import matplotlib.pyplot as plt
+from sqlalchemy import create_engine
+from noaa_sdk import NOAA
+import subprocess
+import TrialFxns.py
+```
+
+```{python}
+import sys
+sys.path.append('/Users/alexanderchansky/iCloud Drive/Documents/GitHub/AlexDS/TrialFunctions.py')
+import TrialFxns.py
+# Does not work
+  # not sure if the appended path is actually working properly
+  # Could probably test that with opening a folder within AlexDS through the console
+```
+
+```{python}
+r = requests.get('https://archive-api.open-meteo.com/v1/archive?latitude=42.3656&longitude=-71.0098&start_date=2022-01-01&end_date=2022-01-02&hourly=temperature_2m')
+r.json()
+```
+
+Save into DB directly \## Storing json in my DB
+
+```{python }
+#json_to_DB(response_string, NOAAcast1)
+
+#def json_to_DB(response_string, table_name, DB="postgres"):
+
+# Convert JSON data to string
+# json_string = json.dumps(response.json())
+data_string = json.dumps(r.json())
+
+# Establish connection to PostgreSQL database
+conn = psycopg2.connect(database ="postgres", user = "postgres",
+                        password = "Brazilll", host = "localhost", 
+                        port = "5432")
+
+# Create a cursor object to execute SQL queries
+cur = conn.cursor()
+
+# Create a table in PostgreSQL with a JSON column
+cur.execute("CREATE TABLE IF NOT EXISTS Meteo (id SERIAL PRIMARY KEY, data JSONB)")
+
+# Insert the JSON data into the table
+cur.execute("INSERT INTO Meteo (data) VALUES (%s)", (data_string,))
+# cur.execute("INSERT INTO "+table_name+" (data) VALUES (%s)", (json_string,))
+
+# Commit the changes to the database
+conn.commit()
+# Close the cursor and the connection
+cur.close()
+conn.close()
+```
+
+Pull out into readable df \## Retrieving that same data from DB into workspace
+
+```{python }
+def db_to_workspace_string(table_name, sql_arg="SELECT data FROM ", DB="postgres"):
+
+  # Attention: this works with NOAA string, but not Tomorrow's
+  # Establish connection to PostgreSQL database
+  conn = psycopg2.connect(database =DB, user = "postgres",
+                          password = "Brazilll", host = "localhost", 
+                          port = "5432")
+  
+  # Create a cursor object to execute SQL queries
+  cur = conn.cursor()
+  
+  # Select the JSON data from the table
+  # cur.execute("SELECT data FROM noaacast1")
+  cur.execute(sql_arg + table_name)
+  
+  # Fetch the retrieved data, which should already be stored as a python object
+  # json_data = cur.fetchone()[0]
+  for row in cur.fetchall():
+      string = row[0]
+      # Do something with the individual string, such as printing it
+      # fxn here to save each string as 
+      # print(string) # prob not necessary
+  
+  # Close the cursor and the connection
+  cur.close()
+  conn.close()
+  
+  return(string)
+
+# Print the retrieved JSON data
+# print(json_data)
+
+jj = db_to_workspace_string("meteo")
+```
+
+## Turning it into readable DF
+
+```{python Tomorrow Json string to readable df fxn}
+
+def jsonstring_to_df(json_data_arg):
+
+  # %% turn to Df
+  # timelines = parsed_data['data']['timelines']
+  timelines = json_data_arg['data']['timelines']
+  intervals = []
+  for timeline in timelines:
+      intervals.extend(timeline['intervals'])
+  
+  # Create a DataFrame from the extracted data
+  data = pd.DataFrame(intervals)
+  
+  
+  # %% Turn Datetimes into columns
+  df = pd.DataFrame(data['startTime'])
+  
+  # Split datetime into separate columns
+  df[['date', 'time']] = df['startTime'].str.split('T', expand=True)
+  df[['year', 'month', 'day']] = df['date'].str.split('-', expand=True)
+  df[['hour', 'minute', 'second']] = df['time'].str[:-1].str.split(':', expand=True)
+  
+  # Remove unnecessary columns
+  df = df.drop(['startTime', 'date', 'time'], axis=1)
+  
+  # %% Pull the column of temperature values
+  df['temp'] = data['values'].apply(lambda x: x['temperature'])
+      # access values in 'values' column
+      # lambda fxn: extracts value, temp, from each key, x
+      
+  return(df)
+
+# df2 = jsonstring_to_df(json_data)
+df2 = jsonstring_to_df(string) # Attention: this works
+```
+
+Should come from somewhere on this website: https://data.census.gov/table?g=040XX00US01\$0500000&d=ACS+5-Year+Estimates+Selected+Population+Data+Profiles&tid=ACSDP5YSPT2021.DP03 - Download csv and place on local computer, with details in iCloud of which data to select - At some point can probably do through API, but this would take longer
+
+### Read in CSV to python
+
+### Parse data from CSV
+
+### Name columns correctly
+
+## Basic statistics for voting
+
+## May need to subtract impacts from poverty and political parties, not sure if others worth it
+
+Plot against avg departure delay
