@@ -26,6 +26,10 @@ def analysis():
 def forecastedweather():
     return render_template("forecasted.html")
 
+@app.route("/forecastedweather2/")
+def forecastedweather2():
+    return render_template("forecasted2.html")
+
 @app.route("/hello/")
 @app.route("/hello/<name>")
 def hello_there(name = None):

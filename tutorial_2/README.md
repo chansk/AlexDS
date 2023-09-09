@@ -37,3 +37,4 @@ When you submit a pull request, a CLA-bot automatically determines whether you n
 
 Additional notes:
 - to add new page: add line to layout.html, add lines to views.py, and add new Html
+- forecasted2 has method of adding js files which seems to work (placing and calling into /static/)

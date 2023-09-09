@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}
+Celtics Stats
+{% endblock %}
+{% block content %}
+<head>
+            Round 7
+</head>
+
+<body>
+    <!-- Attention: if plot isn't printing, change this id line to match bottom of .js file -->
+    <p id="chart_div_area"></p> 
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <!-- this works! -->
+    <script type="text/javascript" src="../static/arealinechart_temptesting2.js"></script>
+
+    <!-- <script type="text/javascript" src="../static/arealinechart_temp.js"></script> -->
+
+</body>
+{% endblock %}
